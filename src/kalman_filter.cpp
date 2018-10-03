@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -61,12 +62,15 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	  float vy = x_(3);
 
 	  float rho = sqrt(px*px+py*py);
-    float theta = atan(py/py);
-    if (theta < - M_PI  ) {theta = theta + 2 * M_PI;}
-    else if(theta > M_PI  ) {theta = theta  - 2 * M_PI;}
+    // if (rho < 1e-2 || px*px < 1e-4 || py*py < 1e-4) {cout << rho << px << py << " (rho,px,py), at least one nearly zero" << endl;}
+    //{cout << rho << px << py << " (rho,px,py)" << endl;}
+    float theta = atan2(py,px); //if (px*px < 1e-4) 
+    //if (theta < - M_PI  ) {cout << "angle lt PI" << endl; theta = theta + 2 * M_PI;}
+    //else if(theta > M_PI  ) {cout << "angle gt PI" << endl; theta = theta  - 2 * M_PI;}
     float rhodot = (px*vx + py*vy)/rho; 
      VectorXd zp(3); // nonlinear measurement
      zp << rho, theta, rhodot;
+      {cout << rho << " (rho) " << theta << " (theta) " << rhodot << " (rhodot)"<< endl;}
 
 
     VectorXd y = z - zp; //H_ * x_;

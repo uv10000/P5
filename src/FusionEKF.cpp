@@ -72,7 +72,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // first measurement
     cout << "EKF: " << endl;
     VectorXd x = VectorXd(4);
-    x << 1, 1, 1, 1;
+    //x << 1, 1, 1, 1;
 
     MatrixXd H; MatrixXd R;
 
@@ -105,10 +105,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 			  0, 0, 0, 1000;
 
     MatrixXd Q = MatrixXd(4, 4);
-	  Q << 1, 0, 0, 0,
-			  0, 1, 0, 0,
-			  0, 0, 1, 0,
-			  0, 0, 0, 1;
+	  Q << 1e-3, 0, 0, 0,
+			  0, 1e-3, 0, 0,
+			  0, 0, 1e-3, 0,
+			  0, 0, 0, 1e-3;
 
     MatrixXd F = MatrixXd(4, 4);
     F << 1, 0, 1, 0,
@@ -145,6 +145,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 	  //Modify the F matrix so that the time is integrated
 	  ekf_.F_(0, 2) = dt;
 	  ekf_.F_(1, 3) = dt;
+
+    //cout << ekf_.F_ << endl;
 
     /* Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
     */
@@ -205,6 +207,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  //cout << "x_ = " << ekf_.x_ << endl;
+  //cout << "P_ = " << ekf_.P_ << endl;
 }
