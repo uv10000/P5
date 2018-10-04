@@ -43,10 +43,6 @@ FusionEKF::FusionEKF() {
   Hj_ << 1, 0, 0, 0,
 			  0, 1, 0, 0,
         0, 0, 0, 0;
-
-  //ekf_.Init(x_in, P_in, F_in, H_in, R_in, Q_in) 
-
-
 }
 
 /**
@@ -70,9 +66,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
 
     // first measurement
-    cout << "EKF: " << endl;
+    cout << "initialisin EKF: " << endl;
     VectorXd x = VectorXd(4);
-    //x << 1, 1, 1, 1;
+    x << 1, 1, 1, 1;
 
     MatrixXd H; MatrixXd R;
 
@@ -117,12 +113,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 			  0, 0, 0, 1;
 
 
-    ekf_.Init(x, P, F, H, R, Q);
+    ekf_.Init(x, P, F, H, R, Q);  // load all these into Kalman filter object
 
     // done initializing, no need to predict or update
     previous_timestamp_ = measurement_pack.timestamp_;
     is_initialized_ = true;
-    // cout << "finished initialisation of FusionEKF " << endl;
+
     return;
   }
 
@@ -145,8 +141,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 	  //Modify the F matrix so that the time is integrated
 	  ekf_.F_(0, 2) = dt;
 	  ekf_.F_(1, 3) = dt;
-
-    //cout << ekf_.F_ << endl;
 
     /* Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
     */
@@ -173,7 +167,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Use the sensor type to perform the update step.
      * Update the state and covariance matrices.
    */
-  //cout << "meas type" << measurement_pack.sensor_type_ << endl;
   
     VectorXd z_3d(3);
     z_3d << 1.,1.,1.;
@@ -182,31 +175,20 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     z_2d << 1.,1.;
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    //cout << " its a radar type measurement" << endl;
     // Radar updates
-    //cout << measurement_pack.raw_measurements_[0] << " (rho) " << measurement_pack.raw_measurements_[1] << " (phi) " << measurement_pack.raw_measurements_[2] << " (rhodot)" << endl;
- 
-    //cout << "still alive, size of z_3d: " << z_3d.size() << " size of x: " << ekf_.x_.size() << endl;
     z_3d << measurement_pack.raw_measurements_[0],measurement_pack.raw_measurements_[1],measurement_pack.raw_measurements_[2];
-    //cout << "just before Jacobian in Radar Update " << endl;
     ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
-    //cout << "finished Jacobian in Radar Update " << endl;
     ekf_.R_ = R_radar_;
-    //cout << "just before UpdateEKF in Radar Update " << endl;
     ekf_.UpdateEKF(z_3d);
-    //cout << "just after UpdateEKF in Radar Update " << endl;
   } else {
-    //cout << " its a laser type measurement" << endl;
     // Laser updates
-      
       z_2d << measurement_pack.raw_measurements_[0],measurement_pack.raw_measurements_[1];
       ekf_.H_ = H_laser_;
       ekf_.R_ = R_laser_;
-      //cout << "just before Laser Update " << endl;
     	ekf_.Update(z_2d);
   }
 
   // print the output
-  //cout << "x_ = " << ekf_.x_ << endl;
-  //cout << "P_ = " << ekf_.P_ << endl;
+  cout << "x_ = " << ekf_.x_ << endl;
+  cout << "P_ = " << ekf_.P_ << endl;
 }

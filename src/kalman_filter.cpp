@@ -42,9 +42,11 @@ void KalmanFilter::Update(const VectorXd &z) {
 		MatrixXd Si = S.inverse();
 		MatrixXd K =  P_ * Ht * Si;
 
-		//new state
+    //create identity matrix 
     long x_size = x_.size();
     MatrixXd I = MatrixXd::Identity(x_size, x_size);
+
+    //new state
 		x_ = x_ + (K * y);
 		P_ = (I - K * H_) * P_;
 }
@@ -62,20 +64,15 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	  float vy = x_(3);
 
 	  float rho = sqrt(px*px+py*py);
-    // if (rho < 1e-2 || px*px < 1e-4 || py*py < 1e-4) {cout << rho << px << py << " (rho,px,py), at least one nearly zero" << endl;}
-    //{cout << rho << px << py << " (rho,px,py)" << endl;}
-    float theta = atan2(py,px); //if (px*px < 1e-4) 
-    //if (theta < - M_PI  ) {cout << "angle lt PI" << endl; theta = theta + 2 * M_PI;}
-    //else if(theta > M_PI  ) {cout << "angle gt PI" << endl; theta = theta  - 2 * M_PI;}
+    if (rho < 1e-4 || px*px < 1e-8 || py*py < 1e-8) {cout << rho << px << py << " (rho,px,py), at least one nearly zero" << endl;}
+    float theta = atan2(py,px); // possible angle jumps will be dealt with below
     float rhodot = (px*vx + py*vy)/rho; 
-     VectorXd zp(3); // nonlinear measurement
-     zp << rho, theta, rhodot;
-      {cout << rho << " (rho) " << theta << " (theta) " << rhodot << " (rhodot)"<< endl;}
-
+    VectorXd zp(3); // nonlinear measurement
+    zp << rho, theta, rhodot;
 
     VectorXd y = z - zp; //H_ * x_;
-    if (y(1) < - M_PI  ) {cout << "angle lt PI" << endl; y(1) = y(1) + 2 * M_PI;}
-    else if(y(1) > M_PI  ) {cout << "angle gt PI" << endl; y(1) = y(1)  - 2 * M_PI;}
+    if (y(1) < - M_PI  ) {cout << "angle lt PI" << endl; y(1) = y(1) + 2 * M_PI;}      //handle jumps originating from atan2
+    else if(y(1) > M_PI  ) {cout << "angle gt PI" << endl; y(1) = y(1)  - 2 * M_PI;}   //handle jumps originating from atan2
 		MatrixXd Ht = H_.transpose();
 		MatrixXd S = H_ * P_ * Ht + R_;
 		MatrixXd Si = S.inverse();
